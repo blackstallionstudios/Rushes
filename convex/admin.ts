@@ -1,7 +1,7 @@
-import { mutation } from "./_generated/server";
+import { action } from "./_generated/server";
 import { v } from "convex/values";
 
-export const verifyPin = mutation({
+export const verifyPin = action({
   args: { pin: v.string() },
   handler: async (_ctx, args) => {
     const adminPin = process.env.ADMIN_PIN;

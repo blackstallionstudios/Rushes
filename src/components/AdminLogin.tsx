@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
 interface Props {
@@ -10,7 +10,7 @@ export default function AdminLogin({ onSuccess }: Props) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const verifyPin = useMutation(api.admin.verifyPin);
+  const verifyPin = useAction(api.admin.verifyPin);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
