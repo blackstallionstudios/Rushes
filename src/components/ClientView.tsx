@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
 import VideoEmbed from "./VideoEmbed";
 import FeedbackForm from "./FeedbackForm";
 import ConfirmationScreen from "./ConfirmationScreen";
+import SmashDownloadButton from "./SmashDownloadButton";
+import { Id } from "../../convex/_generated/dataModel";
 
 interface Project {
   _id: Id<"projects">;
   title: string;
   videoUrl: string;
   message?: string;
+  downloadUrl?: string;
 }
 
 interface Props {
@@ -31,6 +31,11 @@ export default function ClientView({ project }: Props) {
             <p className="text-ink-muted text-sm leading-relaxed max-w-md mx-auto bg-bg-card rounded-xl px-5 py-4 shadow-neu-flat border border-ink-faint/30">
               {project.message}
             </p>
+          )}
+          {project.downloadUrl && (
+            <div className="mt-6 flex justify-center">
+              <SmashDownloadButton href={project.downloadUrl} />
+            </div>
           )}
         </div>
 

@@ -7,6 +7,8 @@ const applicationTables = {
     title: v.string(),
     videoUrl: v.string(),
     message: v.optional(v.string()),
+    /** Smash (or other) file transfer link for full-resolution downloads */
+    downloadUrl: v.optional(v.string()),
   }),
 
   feedback: defineTable({

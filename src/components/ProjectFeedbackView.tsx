@@ -1,6 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
+import SmashDownloadButton from "./SmashDownloadButton";
 
 interface Props {
   projectId: Id<"projects">;
@@ -31,10 +32,17 @@ export default function ProjectFeedbackView({ projectId, onBack }: Props) {
           ← Back to Projects
         </button>
 
-        <h1 className="text-3xl font-display text-gold mb-1">{project.title}</h1>
-        <p className="text-ink-muted text-sm mb-8">
-          {feedbackList.length} submission{feedbackList.length !== 1 ? "s" : ""}
-        </p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-display text-gold mb-1">{project.title}</h1>
+          <p className="text-ink-muted text-sm">
+            {feedbackList.length} submission{feedbackList.length !== 1 ? "s" : ""}
+          </p>
+          {project.downloadUrl && (
+            <div className="mt-4">
+              <SmashDownloadButton href={project.downloadUrl} />
+            </div>
+          )}
+        </div>
 
         {feedbackList.length === 0 ? (
           <div className="text-center py-20 text-ink-muted">
