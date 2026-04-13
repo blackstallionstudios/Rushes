@@ -3,6 +3,7 @@ import VideoEmbed from "./VideoEmbed";
 import FeedbackForm from "./FeedbackForm";
 import ConfirmationScreen from "./ConfirmationScreen";
 import SmashDownloadButton from "./SmashDownloadButton";
+import { formatDownloadExpiryNotice } from "../lib/downloadExpiry";
 import { Id } from "../../convex/_generated/dataModel";
 
 interface Project {
@@ -11,6 +12,7 @@ interface Project {
   videoUrl: string;
   message?: string;
   downloadUrl?: string;
+  downloadExpiresAt?: number;
 }
 
 interface Props {
@@ -33,8 +35,14 @@ export default function ClientView({ project }: Props) {
             </p>
           )}
           {project.downloadUrl && (
-            <div className="mt-6 flex justify-center">
-              <SmashDownloadButton href={project.downloadUrl} />
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <SmashDownloadButton
+                href={project.downloadUrl}
+                expiresAt={project.downloadExpiresAt}
+              />
+              <p className="text-ink-muted text-sm text-center max-w-sm">
+                {formatDownloadExpiryNotice(project.downloadExpiresAt)}
+              </p>
             </div>
           )}
         </div>

@@ -4,6 +4,13 @@ import { api } from "../../convex/_generated/api";
 import { Doc, Id } from "../../convex/_generated/dataModel";
 import ProjectFeedbackView from "./ProjectFeedbackView";
 import SmashDownloadButton from "./SmashDownloadButton";
+import {
+  SEVEN_DAYS_MS,
+  dateInputValueToEndOfDayMs,
+  formatDownloadExpiryNotice,
+  msToDateInputValue,
+  suggestedDefaultExpiryDateInputValue,
+} from "../lib/downloadExpiry";
 
 function ProjectFormFields({
   title,
@@ -12,6 +19,8 @@ function ProjectFormFields({
   setVideoUrl,
   downloadUrl,
   setDownloadUrl,
+  downloadExpiresDate,
+  setDownloadExpiresDate,
   message,
   setMessage,
 }: {
@@ -21,6 +30,8 @@ function ProjectFormFields({
   setVideoUrl: (v: string) => void;
   downloadUrl: string;
   setDownloadUrl: (v: string) => void;
+  downloadExpiresDate: string;
+  setDownloadExpiresDate: (v: string) => void;
   message: string;
   setMessage: (v: string) => void;
 }) {
@@ -70,6 +81,21 @@ function ProjectFormFields({
 
       <div>
         <label className="block text-xs uppercase tracking-widest text-ink-muted mb-1.5">
+          Download link expires
+        </label>
+        <input
+          type="date"
+          value={downloadExpiresDate}
+          onChange={(e) => setDownloadExpiresDate(e.target.value)}
+          className="w-full max-w-xs bg-bg-elevated border border-ink-faint rounded-lg px-4 py-2.5 text-ink focus:border-gold transition-colors shadow-neu-inset [color-scheme:dark]"
+        />
+        <p className="text-ink-faint text-xs mt-1.5">
+          Defaults to one week from creation; clients lose the download button after this date.
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-xs uppercase tracking-widest text-ink-muted mb-1.5">
           Message to Client <span className="normal-case text-ink-faint">(optional)</span>
         </label>
         <textarea
@@ -93,6 +119,9 @@ export default function AdminDashboard() {
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [downloadExpiresDate, setDownloadExpiresDate] = useState(() =>
+    suggestedDefaultExpiryDateInputValue()
+  );
   const [message, setMessage] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -100,6 +129,7 @@ export default function AdminDashboard() {
   const [editTitle, setEditTitle] = useState("");
   const [editVideoUrl, setEditVideoUrl] = useState("");
   const [editDownloadUrl, setEditDownloadUrl] = useState("");
+  const [editDownloadExpiresDate, setEditDownloadExpiresDate] = useState("");
   const [editMessage, setEditMessage] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -110,6 +140,7 @@ export default function AdminDashboard() {
 
   function openCreateForm() {
     setShowForm(true);
+    setDownloadExpiresDate(suggestedDefaultExpiryDateInputValue());
     cancelEdit();
   }
 
@@ -130,6 +161,11 @@ export default function AdminDashboard() {
     setEditTitle(p.title);
     setEditVideoUrl(p.videoUrl);
     setEditDownloadUrl(p.downloadUrl ?? "");
+    setEditDownloadExpiresDate(
+      msToDateInputValue(
+        p.downloadExpiresAt ?? p._creationTime + SEVEN_DAYS_MS
+      )
+    );
     setEditMessage(p.message ?? "");
     setShowForm(false);
     setConfirmDelete(null);
@@ -149,10 +185,12 @@ export default function AdminDashboard() {
         videoUrl,
         message: message.trim() || undefined,
         downloadUrl: downloadUrl.trim() || undefined,
+        downloadExpiresAt: dateInputValueToEndOfDayMs(downloadExpiresDate),
       });
       setTitle("");
       setVideoUrl("");
       setDownloadUrl("");
+      setDownloadExpiresDate(suggestedDefaultExpiryDateInputValue());
       setMessage("");
       closeCreateForm();
     } finally {
@@ -171,6 +209,7 @@ export default function AdminDashboard() {
         videoUrl: editVideoUrl,
         message: editMessage.trim() || undefined,
         downloadUrl: editDownloadUrl.trim() || undefined,
+        downloadExpiresAt: dateInputValueToEndOfDayMs(editDownloadExpiresDate),
       });
       cancelEdit();
     } finally {
@@ -232,6 +271,8 @@ export default function AdminDashboard() {
               setVideoUrl={setVideoUrl}
               downloadUrl={downloadUrl}
               setDownloadUrl={setDownloadUrl}
+              downloadExpiresDate={downloadExpiresDate}
+              setDownloadExpiresDate={setDownloadExpiresDate}
               message={message}
               setMessage={setMessage}
             />
@@ -270,8 +311,15 @@ export default function AdminDashboard() {
                       })}
                     </p>
                     {p.downloadUrl && editingId !== p._id && (
-                      <div className="mt-3">
-                        <SmashDownloadButton href={p.downloadUrl} />
+                      <div className="mt-3 flex flex-col gap-1.5 items-start">
+                        <SmashDownloadButton
+                          href={p.downloadUrl}
+                          expiresAt={p.downloadExpiresAt}
+                          showExpiredHint
+                        />
+                        <p className="text-ink-faint text-xs">
+                          {formatDownloadExpiryNotice(p.downloadExpiresAt)}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -340,6 +388,8 @@ export default function AdminDashboard() {
                       setVideoUrl={setEditVideoUrl}
                       downloadUrl={editDownloadUrl}
                       setDownloadUrl={setEditDownloadUrl}
+                      downloadExpiresDate={editDownloadExpiresDate}
+                      setDownloadExpiresDate={setEditDownloadExpiresDate}
                       message={editMessage}
                       setMessage={setEditMessage}
                     />

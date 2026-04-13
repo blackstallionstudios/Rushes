@@ -2,6 +2,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import SmashDownloadButton from "./SmashDownloadButton";
+import { formatDownloadExpiryNotice } from "../lib/downloadExpiry";
 
 interface Props {
   projectId: Id<"projects">;
@@ -38,8 +39,15 @@ export default function ProjectFeedbackView({ projectId, onBack }: Props) {
             {feedbackList.length} submission{feedbackList.length !== 1 ? "s" : ""}
           </p>
           {project.downloadUrl && (
-            <div className="mt-4">
-              <SmashDownloadButton href={project.downloadUrl} />
+            <div className="mt-4 flex flex-col gap-1.5 items-start">
+              <SmashDownloadButton
+                href={project.downloadUrl}
+                expiresAt={project.downloadExpiresAt}
+                showExpiredHint
+              />
+              <p className="text-ink-faint text-xs">
+                {formatDownloadExpiryNotice(project.downloadExpiresAt)}
+              </p>
             </div>
           )}
         </div>

@@ -21,13 +21,18 @@ export const createProject = mutation({
     videoUrl: v.string(),
     message: v.optional(v.string()),
     downloadUrl: v.optional(v.string()),
+    downloadExpiresAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    const downloadExpiresAt =
+      args.downloadExpiresAt ?? Date.now() + sevenDays;
     return await ctx.db.insert("projects", {
       title: args.title,
       videoUrl: args.videoUrl,
       message: args.message,
       downloadUrl: args.downloadUrl,
+      downloadExpiresAt,
     });
   },
 });
@@ -39,6 +44,7 @@ export const updateProject = mutation({
     videoUrl: v.string(),
     message: v.optional(v.string()),
     downloadUrl: v.optional(v.string()),
+    downloadExpiresAt: v.number(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.projectId);
@@ -52,6 +58,7 @@ export const updateProject = mutation({
       videoUrl: args.videoUrl.trim(),
       message,
       downloadUrl,
+      downloadExpiresAt: args.downloadExpiresAt,
     });
   },
 });

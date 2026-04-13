@@ -9,6 +9,8 @@ const applicationTables = {
     message: v.optional(v.string()),
     /** Smash (or other) file transfer link for full-resolution downloads */
     downloadUrl: v.optional(v.string()),
+    /** Unix ms: download link is hidden after this instant (typically end of selected local day). */
+    downloadExpiresAt: v.optional(v.number()),
   }),
 
   feedback: defineTable({
