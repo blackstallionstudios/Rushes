@@ -1,4 +1,5 @@
 import { isDownloadExpired } from "../lib/downloadExpiry";
+import { normalizeExternalHref } from "../lib/utils";
 
 interface Props {
   href?: string | null;
@@ -15,7 +16,7 @@ export default function SmashDownloadButton({
   showExpiredHint = false,
   className = "",
 }: Props) {
-  const url = href?.trim();
+  const url = normalizeExternalHref(href ?? "");
   if (!url) return null;
 
   const expired = isDownloadExpired(expiresAt ?? null);
