@@ -28,6 +28,19 @@ export const submitFeedback = mutation({
     generalNotes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const firstTimestampedNote = args.timestampedNotes[0]?.comment?.trim();
+    const generalNotes = args.generalNotes?.trim();
+    const summarySource =
+      generalNotes && generalNotes.length > 0
+        ? generalNotes
+        : firstTimestampedNote && firstTimestampedNote.length > 0
+          ? firstTimestampedNote
+          : `${args.timestampedNotes.length} timestamped note${args.timestampedNotes.length !== 1 ? "s" : ""}`;
+    const feedbackSummary =
+      summarySource.length > 140
+        ? `${summarySource.slice(0, 137)}...`
+        : summarySource;
+
     const id = await ctx.db.insert("feedback", {
       projectId: args.projectId,
       clientName: args.clientName,
@@ -42,6 +55,7 @@ export const submitFeedback = mutation({
       clientName: args.clientName,
       rating: args.rating,
       noteCount: args.timestampedNotes.length,
+      feedbackSummary,
     });
 
     return id;
