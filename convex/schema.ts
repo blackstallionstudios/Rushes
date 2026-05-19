@@ -11,7 +11,12 @@ const applicationTables = {
     downloadUrl: v.optional(v.string()),
     /** Unix ms: download link is hidden after this instant (typically end of selected local day). */
     downloadExpiresAt: v.optional(v.number()),
-  }),
+    /**
+     * Random opaque token used in client-facing URLs (/share/:shareToken).
+     * Optional only to permit backfill; treat as required for any new project.
+     */
+    shareToken: v.optional(v.string()),
+  }).index("by_share_token", ["shareToken"]),
 
   feedback: defineTable({
     projectId: v.id("projects"),
@@ -25,6 +30,13 @@ const applicationTables = {
     ),
     generalNotes: v.optional(v.string()),
   }).index("by_project", ["projectId"]),
+
+  /** Per-share-token sliding window throttle for public submitFeedback. */
+  feedbackRateLimits: defineTable({
+    shareToken: v.string(),
+    count: v.number(),
+    windowStartedAt: v.number(),
+  }).index("by_share_token", ["shareToken"]),
 };
 
 export default defineSchema({

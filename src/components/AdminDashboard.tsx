@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import { Doc, Id } from "../../convex/_generated/dataModel";
 import ProjectFeedbackView from "./ProjectFeedbackView";
@@ -115,6 +116,8 @@ export default function AdminDashboard() {
   const createProject = useMutation(api.projects.createProject);
   const updateProject = useMutation(api.projects.updateProject);
   const deleteProject = useMutation(api.projects.deleteProject);
+  const rotateShareToken = useMutation(api.projects.rotateShareToken);
+  const { signOut } = useAuthActions();
 
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
@@ -217,11 +220,23 @@ export default function AdminDashboard() {
     }
   }
 
-  function copyLink(id: string) {
-    const url = `${window.location.origin}/project/${id}`;
+  function copyLink(p: Doc<"projects">) {
+    if (!p.shareToken) return;
+    const url = `${window.location.origin}/share/${p.shareToken}`;
     navigator.clipboard.writeText(url);
-    setCopied(id);
+    setCopied(p._id);
     setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function handleRotate(id: Id<"projects">) {
+    if (
+      !window.confirm(
+        "Rotate share link? The old link will stop working immediately."
+      )
+    ) {
+      return;
+    }
+    await rotateShareToken({ projectId: id });
   }
 
   async function handleDelete(id: Id<"projects">) {
@@ -248,12 +263,21 @@ export default function AdminDashboard() {
             <h1 className="text-4xl font-display text-gold">Rushes</h1>
             <p className="text-ink-muted text-sm mt-1">Admin Dashboard</p>
           </div>
-          <button
-            onClick={toggleCreateForm}
-            className="px-5 py-2.5 rounded-lg bg-gold text-bg font-semibold text-sm hover:bg-gold-light transition-colors shadow-gold-glow"
-          >
-            {showForm ? "Cancel" : "+ New Project"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleCreateForm}
+              className="px-5 py-2.5 rounded-lg bg-gold text-bg font-semibold text-sm hover:bg-gold-light transition-colors shadow-gold-glow"
+            >
+              {showForm ? "Cancel" : "+ New Project"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="px-4 py-2.5 rounded-lg border border-ink-faint text-ink-muted text-sm hover:border-gold/50 hover:text-gold transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
 
         {/* Create form */}
@@ -326,10 +350,24 @@ export default function AdminDashboard() {
                   <div className="flex gap-2 flex-wrap items-center shrink-0">
                     <button
                       type="button"
-                      onClick={() => copyLink(p._id)}
-                      className="px-4 py-2 rounded-lg border border-gold text-gold text-sm hover:bg-gold-muted transition-colors"
+                      onClick={() => copyLink(p)}
+                      disabled={!p.shareToken}
+                      title={
+                        p.shareToken
+                          ? undefined
+                          : "Run the share-token backfill migration to enable this link."
+                      }
+                      className="px-4 py-2 rounded-lg border border-gold text-gold text-sm hover:bg-gold-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {copied === p._id ? "Copied!" : "Copy Link"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleRotate(p._id)}
+                      disabled={!p.shareToken}
+                      className="px-4 py-2 rounded-lg border border-ink-faint text-ink-muted text-sm hover:border-gold/50 hover:text-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Rotate Link
                     </button>
                     <button
                       type="button"

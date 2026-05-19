@@ -4,10 +4,9 @@ import FeedbackForm from "./FeedbackForm";
 import ConfirmationScreen from "./ConfirmationScreen";
 import SmashDownloadButton from "./SmashDownloadButton";
 import { formatDownloadExpiryNotice } from "../lib/downloadExpiry";
-import { Id } from "../../convex/_generated/dataModel";
 
-interface Project {
-  _id: Id<"projects">;
+export interface SharedProject {
+  shareToken: string;
   title: string;
   videoUrl: string;
   message?: string;
@@ -16,7 +15,7 @@ interface Project {
 }
 
 interface Props {
-  project: Project;
+  project: SharedProject;
 }
 
 export default function ClientView({ project }: Props) {
@@ -25,7 +24,6 @@ export default function ClientView({ project }: Props) {
   return (
     <div className="min-h-screen bg-bg px-4 py-10">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <p className="text-xs uppercase tracking-widest text-gold mb-3">Rushes</p>
           <h1 className="text-4xl font-display text-ink mb-3">{project.title}</h1>
@@ -47,18 +45,15 @@ export default function ClientView({ project }: Props) {
           )}
         </div>
 
-        {/* Video */}
         <div className="mb-8 rounded-xl overflow-hidden shadow-neu-flat">
           <VideoEmbed url={project.videoUrl} />
         </div>
 
-        {/* Feedback or Confirmation */}
         {submitted ? (
           <ConfirmationScreen />
         ) : (
           <FeedbackForm
-            projectId={project._id}
-            projectTitle={project.title}
+            shareToken={project.shareToken}
             onSubmitted={() => setSubmitted(true)}
           />
         )}

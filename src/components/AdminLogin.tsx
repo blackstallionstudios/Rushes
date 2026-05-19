@@ -1,30 +1,33 @@
 import { useState } from "react";
-import { useAction } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useAuthActions } from "@convex-dev/auth/react";
 
-interface Props {
-  onSuccess: () => void;
-}
-
-export default function AdminLogin({ onSuccess }: Props) {
-  const [pin, setPin] = useState("");
+export default function AdminLogin() {
+  const { signIn } = useAuthActions();
+  const [flow, setFlow] = useState<"signIn" | "signUp">("signIn");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const verifyPin = useAction(api.admin.verifyPin);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const ok = await verifyPin({ pin });
-      if (ok) {
-        onSuccess();
+      const formData = new FormData();
+      formData.set("email", email.trim());
+      formData.set("password", password);
+      formData.set("flow", flow);
+      await signIn("password", formData);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong.";
+      if (/sign-up is disabled/i.test(msg)) {
+        setError("Sign-up is disabled — this email is not the configured admin.");
+      } else if (/invalid/i.test(msg)) {
+        setError("Invalid credentials.");
       } else {
-        setError("Incorrect PIN. Try again.");
+        setError(flow === "signIn" ? "Could not sign in." : "Could not sign up.");
       }
-    } catch {
-      setError("Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -43,28 +46,55 @@ export default function AdminLogin({ onSuccess }: Props) {
       >
         <div>
           <label className="block text-xs uppercase tracking-widest text-ink-muted mb-2">
-            Admin PIN
+            Email
           </label>
           <input
-            type="password"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            placeholder="••••••"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
             className="w-full bg-bg-elevated border border-ink-faint rounded-lg px-4 py-3 text-ink focus:border-gold transition-colors shadow-neu-inset"
+            required
             autoFocus
           />
         </div>
 
-        {error && (
-          <p className="text-red-400 text-sm">{error}</p>
-        )}
+        <div>
+          <label className="block text-xs uppercase tracking-widest text-ink-muted mb-2">
+            Password
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="w-full bg-bg-elevated border border-ink-faint rounded-lg px-4 py-3 text-ink focus:border-gold transition-colors shadow-neu-inset"
+            required
+            minLength={8}
+          />
+        </div>
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading || !pin}
+          disabled={loading || !email || !password}
           className="w-full py-3 rounded-lg bg-gold text-bg font-semibold tracking-wide hover:bg-gold-light transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-gold-glow"
         >
-          {loading ? "Verifying…" : "Enter"}
+          {loading ? "Working…" : flow === "signIn" ? "Sign in" : "Create admin"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setFlow(flow === "signIn" ? "signUp" : "signIn");
+            setError("");
+          }}
+          className="text-xs text-ink-muted hover:text-gold transition-colors"
+        >
+          {flow === "signIn"
+            ? "First-time setup? Create the admin account."
+            : "Already set up? Sign in."}
         </button>
       </form>
     </div>

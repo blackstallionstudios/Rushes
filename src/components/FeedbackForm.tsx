@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Id } from "../../convex/_generated/dataModel";
 
 interface TimestampedNote {
   timestamp: string;
@@ -9,14 +8,13 @@ interface TimestampedNote {
 }
 
 interface Props {
-  projectId: Id<"projects">;
-  projectTitle: string;
+  shareToken: string;
   onSubmitted: () => void;
 }
 
 const STARS = [1, 2, 3, 4, 5];
 
-export default function FeedbackForm({ projectId, projectTitle, onSubmitted }: Props) {
+export default function FeedbackForm({ shareToken, onSubmitted }: Props) {
   const submitFeedback = useMutation(api.feedback.submitFeedback);
 
   const [clientName, setClientName] = useState("");
@@ -26,6 +24,7 @@ export default function FeedbackForm({ projectId, projectTitle, onSubmitted }: P
   const [generalNotes, setGeneralNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState("");
 
   function addNote() {
     setNotes([...notes, { timestamp: "", comment: "" }]);
@@ -60,11 +59,11 @@ export default function FeedbackForm({ projectId, projectTitle, onSubmitted }: P
       return;
     }
     setErrors({});
+    setSubmitError("");
     setSubmitting(true);
     try {
       await submitFeedback({
-        projectId,
-        projectTitle,
+        shareToken,
         clientName: clientName.trim(),
         rating,
         timestampedNotes: notes,
@@ -72,7 +71,14 @@ export default function FeedbackForm({ projectId, projectTitle, onSubmitted }: P
       });
       onSubmitted();
     } catch (err) {
-      console.error(err);
+      const msg = err instanceof Error ? err.message : "Could not submit feedback.";
+      setSubmitError(
+        /too many/i.test(msg)
+          ? "Too many submissions from this link. Please try again later."
+          : /invalid|revoked/i.test(msg)
+            ? "This link is no longer valid. Please ask for a new one."
+            : "Could not submit feedback. Please try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -215,6 +221,9 @@ export default function FeedbackForm({ projectId, projectTitle, onSubmitted }: P
         />
       </div>
 
+      {submitError && (
+        <p className="text-red-400 text-sm text-center">{submitError}</p>
+      )}
       <button
         type="submit"
         disabled={submitting}
