@@ -1,90 +1,47 @@
-# Welcome to your Convex functions directory!
+# Convex Backend
 
-Write your Convex functions here.
-See https://docs.convex.dev/functions for more.
+This directory contains all Rushes backend logic, running on [Convex](https://convex.dev).
 
-A query function that takes two arguments looks like:
+## Files
 
-```ts
-// convex/myFunctions.ts
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+| File | Purpose |
+|---|---|
+| `schema.ts` | Database schema — `projects` and `feedback` tables |
+| `projects.ts` | CRUD mutations and queries for projects |
+| `feedback.ts` | Feedback submission mutation (saves record + fires notification) |
+| `notifications.ts` | ntfy.sh push notification action (Node.js runtime) |
+| `admin.ts` | PIN verification action |
+| `auth.ts` | Convex Auth configuration |
+| `auth.config.ts` | Auth provider config |
+| `http.ts` | HTTP router (auth endpoints) |
+| `router.ts` | Convex router setup |
 
-export const myQueryFunction = query({
-  // Validators for arguments.
-  args: {
-    first: v.number(),
-    second: v.string(),
-  },
+## Environment Variables
 
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Read the database as many times as you need here.
-    // See https://docs.convex.dev/database/reading-data.
-    const documents = await ctx.db.query("tablename").collect();
+Set these in the Convex dashboard under **Settings → Environment Variables**:
 
-    // Arguments passed from the client are properties of the args object.
-    console.log(args.first, args.second);
+| Variable | Required | Description |
+|---|---|---|
+| `ADMIN_PIN` | Yes | PIN checked on every admin login |
+| `NTFY_TOPIC` | No | ntfy.sh topic name for push notifications |
+| `APP_URL` | No | Public app URL — adds an "Open Admin Portal" action button to notifications |
 
-    // Write arbitrary JavaScript here: filter, aggregate, build derived data,
-    // remove non-public properties, or create new objects.
-    return documents;
-  },
-});
+## Generated Files
+
+`convex/_generated/` is committed to the repo so TypeScript type-checking works in CI without running `npx convex dev` first. These files are automatically regenerated on every `npx convex dev` or `npx convex deploy` run — do not edit them by hand.
+
+## Local Development
+
+```bash
+npx convex dev
 ```
 
-Using this query function in a React component looks like:
+This watches for changes and automatically pushes functions to your dev deployment.
 
-```ts
-const data = useQuery(api.myFunctions.myQueryFunction, {
-  first: 10,
-  second: "hello",
-});
+## Useful Commands
+
+```bash
+npx convex dashboard   # Open the Convex dashboard
+npx convex logs        # Stream function logs
+npx convex data        # Browse your database tables
 ```
-
-A mutation function looks like:
-
-```ts
-// convex/myFunctions.ts
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
-
-export const myMutationFunction = mutation({
-  // Validators for arguments.
-  args: {
-    first: v.string(),
-    second: v.string(),
-  },
-
-  // Function implementation.
-  handler: async (ctx, args) => {
-    // Insert or modify documents in the database here.
-    // Mutations can also read from the database like queries.
-    // See https://docs.convex.dev/database/writing-data.
-    const message = { body: args.first, author: args.second };
-    const id = await ctx.db.insert("messages", message);
-
-    // Optionally, return a value from your mutation.
-    return await ctx.db.get("messages", id);
-  },
-});
-```
-
-Using this mutation function in a React component looks like:
-
-```ts
-const mutation = useMutation(api.myFunctions.myMutationFunction);
-function handleButtonPress() {
-  // fire and forget, the most common way to use mutations
-  mutation({ first: "Hello!", second: "me" });
-  // OR
-  // use the result once the mutation has completed
-  mutation({ first: "Hello!", second: "me" }).then((result) =>
-    console.log(result),
-  );
-}
-```
-
-Use the Convex CLI to push your functions to a deployment. See everything
-the Convex CLI can do by running `npx convex -h` in your project root
-directory. To learn more, launch the docs with `npx convex docs`.

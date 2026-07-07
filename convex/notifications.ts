@@ -21,17 +21,21 @@ export const sendNtfy = internalAction({
     const stars = "*".repeat(args.rating) + "-".repeat(5 - args.rating);
     const body = `${args.clientName} left feedback on "${args.projectTitle}"\n${stars}\n${args.noteCount} timestamped note${args.noteCount !== 1 ? "s" : ""}\nSummary: ${args.feedbackSummary}`;
 
+    const appUrl = process.env.APP_URL;
+    const headers: Record<string, string> = {
+      "Content-Type": "text/plain",
+      Title: `Feedback: ${args.projectTitle}`,
+      Priority: "default",
+      Tags: "clapper",
+    };
+    if (appUrl) {
+      headers.Actions = `view,Open Admin Portal,${appUrl}/admin,clear=true`;
+    }
+
     try {
       await fetch(`https://ntfy.sh/${topic}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "text/plain",
-          Title: `Feedback: ${args.projectTitle}`,
-          Priority: "default",
-          Tags: "clapper",
-          Actions:
-            "view,Open Admin Portal,https://blackstallionstudios-rushes.vercel.app/admin,clear=true",
-        },
+        headers,
         body,
       });
     } catch (err) {

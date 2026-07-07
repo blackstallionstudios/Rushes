@@ -14,6 +14,7 @@ function getEmbedUrl(url: string): string | null {
   // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
   if (vimeoMatch) {
+    // color= matches the gold design token (--color-gold: #c9a84c)
     return `https://player.vimeo.com/video/${vimeoMatch[1]}?color=c9a84c&title=0&byline=0&portrait=0`;
   }
 

@@ -1,14 +1,19 @@
 {
-  "name": "flex-template",
-  "private": true,
-  "version": "0.0.0",
+  "name": "rushes",
+  "version": "1.0.0",
+  "description": "A client video review and feedback platform for filmmakers — share video cuts, collect timestamped notes, and get push notifications when feedback lands.",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "npm-run-all --parallel dev:frontend dev:backend",
     "dev:frontend": "vite --open",
     "dev:backend": "convex dev",
     "build": "vite build",
-    "lint": "tsc -p convex -noEmit --pretty false && tsc -p . -noEmit --pretty false && convex dev --once && vite build"
+    "typecheck": "tsc -p convex/tsconfig.json --noEmit && tsc -p tsconfig.app.json --noEmit",
+    "lint": "npm run typecheck && convex dev --once && vite build"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.80",

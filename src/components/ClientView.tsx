@@ -2,7 +2,7 @@ import { useState } from "react";
 import VideoEmbed from "./VideoEmbed";
 import FeedbackForm from "./FeedbackForm";
 import ConfirmationScreen from "./ConfirmationScreen";
-import SmashDownloadButton from "./SmashDownloadButton";
+import DownloadButton from "./DownloadButton";
 import { formatDownloadExpiryNotice } from "../lib/downloadExpiry";
 import { Id } from "../../convex/_generated/dataModel";
 
@@ -36,7 +36,7 @@ export default function ClientView({ project }: Props) {
           )}
           {project.downloadUrl && (
             <div className="mt-6 flex flex-col items-center gap-2">
-              <SmashDownloadButton
+              <DownloadButton
                 href={project.downloadUrl}
                 expiresAt={project.downloadExpiresAt}
               />

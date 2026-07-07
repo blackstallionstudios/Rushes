@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Doc, Id } from "../../convex/_generated/dataModel";
 import ProjectFeedbackView from "./ProjectFeedbackView";
-import SmashDownloadButton from "./SmashDownloadButton";
+import DownloadButton from "./DownloadButton";
 import {
   SEVEN_DAYS_MS,
   dateInputValueToEndOfDayMs,
@@ -65,12 +65,12 @@ function ProjectFormFields({
 
       <div>
         <label className="block text-xs uppercase tracking-widest text-ink-muted mb-1.5">
-          Smash download link <span className="normal-case text-ink-faint">(optional)</span>
+          Download link <span className="normal-case text-ink-faint">(optional)</span>
         </label>
         <input
           value={downloadUrl}
           onChange={(e) => setDownloadUrl(e.target.value)}
-          placeholder="https://fromsmash.com/…"
+          placeholder="https://fromsmash.com/…, Google Drive, WeTransfer, etc."
           type="url"
           className="w-full bg-bg-elevated border border-ink-faint rounded-lg px-4 py-2.5 text-ink focus:border-gold transition-colors shadow-neu-inset"
         />
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                     </p>
                     {p.downloadUrl && editingId !== p._id && (
                       <div className="mt-3 flex flex-col gap-1.5 items-start">
-                        <SmashDownloadButton
+                        <DownloadButton
                           href={p.downloadUrl}
                           expiresAt={p.downloadExpiresAt}
                           showExpiredHint
